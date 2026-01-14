@@ -799,8 +799,14 @@ function PawnPanel:onConfirmSell()
     sendClientCommand("AutoPawnShop", "SellSelectedJewels", { toSell = self.toSell })
     sendClientCommand("AutoPawnShop", "RequestSync", {})
   else
-    -- SP o host local
-    if AutoPawnShop and AutoPawnShop.SellSelectedJewelsLocal then
+    -- SP o host local: usar shim si existe para evitar missing
+    if AutoPawnShop and AutoPawnShop.RequestSellJewels then
+      local ok = AutoPawnShop.RequestSellJewels(self.toSell)
+      if ok == false then
+        AutoPawnShopUI_Toast("Sell failed.")
+        return
+      end
+    elseif AutoPawnShop and AutoPawnShop.SellSelectedJewelsLocal then
       local ok, msg = AutoPawnShop.SellSelectedJewelsLocal(getPlayer(), self.toSell)
       AutoPawnShopUI_Toast(msg or (ok and "Sold." or "Sell failed."))
     else
@@ -1187,7 +1193,7 @@ function ShopPanel:initialise()
     if AutoPawnShop and AutoPawnShop.RequestLinkCard then
       self:setLinking(true)
       AutoPawnShop.RequestLinkCard()
-      self:setLinking(false)
+      -- El estado de linking se apaga desde el client (watchdog/refresh).
     else
       AutoPawnShopUI_Toast("Client link function missing.")
     end
