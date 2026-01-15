@@ -61,6 +61,33 @@ local function removeVendingDuplicates(page, wantedType)
   if type(dt) == "table" and dt.x and dt.y and dt.z and dt.ctype then
     allowed = findContainerAt(dt.x, dt.y, dt.z, dt.ctype)
   end
+  -- Fallback: if no cached dropTarget, keep the first matching vending container
+  if not allowed then
+    local bp = page.backpacks
+    if bp and bp.size and bp.get then
+      for i = 0, bp:size() - 1 do
+        local inv = entryInv(bp:get(i))
+        if inv and inv.getType and inv:getType() then
+          local t = tostring(inv:getType()):lower()
+          if t == wantedType then
+            allowed = inv
+            break
+          end
+        end
+      end
+    elseif type(bp) == "table" then
+      for i = 1, #bp do
+        local inv = entryInv(bp[i])
+        if inv and inv.getType and inv:getType() then
+          local t = tostring(inv:getType()):lower()
+          if t == wantedType then
+            allowed = inv
+            break
+          end
+        end
+      end
+    end
+  end
 
   local removed = 0
   local bp = page.backpacks

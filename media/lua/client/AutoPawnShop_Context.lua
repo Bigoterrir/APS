@@ -83,6 +83,18 @@ local function onFillWorldObjectContextMenu(playerNum, context, worldobjects, te
 
   elseif kind == "shop" then
     context:addOption("Vending (Buy)", nil, function()
+      -- Cache dropTarget client-side to avoid duplicate/ghost vending containers
+      if AutoPawnShop and AutoPawnShop.ClientState and target and target.getSquare then
+        local sq = target:getSquare()
+        if sq then
+          AutoPawnShop.ClientState.dropTarget = {
+            x = sq:getX(),
+            y = sq:getY(),
+            z = sq:getZ(),
+            ctype = tostring(Cfg.CardShopContainerType or "vendingsnack"),
+          }
+        end
+      end
       if AutoPawnShopUI_OpenShop then
         AutoPawnShopUI_OpenShop(playerNum, target)
       else
